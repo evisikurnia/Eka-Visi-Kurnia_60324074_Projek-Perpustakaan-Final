@@ -1,344 +1,91 @@
-@extends('layouts.app')
- 
-@section('title', 'Daftar Buku')
- 
-@section('content')
-{{-- 1. HEADER HALAMAN --}}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>
-        <i class="bi bi-book"></i> Daftar Buku
-    </h1>
-    <div>
-        <a href="{{ route('buku.export') }}" class="btn btn-success me-2">
-            <i class="bi bi-download"></i> Export CSV
-        </a>
-        <a href="{{ route('buku.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Tambah Buku
-        </a>
-    </div>
-</div>
- 
-{{-- 2. Statistik Cards --}}
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card border-primary">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-1">Total Buku</h6>
-                        <h2 class="mb-0">{{ $totalBuku }}</h2>
-                    </div>
-                    <div class="text-primary">
-                        <i class="bi bi-book-fill" style="font-size: 3rem;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-4">
-        <div class="card border-success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-1">Buku Tersedia</h6>
-                        <h2 class="mb-0">{{ $bukuTersedia }}</h2>
-                    </div>
-                    <div class="text-success">
-                        <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-        <div class="col-md-4">
-        <div class="card border-success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-1">Buku Habis</h6>
-                        <h2 class="mb-0">{{ $bukuHabis }}</h2>
-                    </div>
-                    <div class="text-danger">
-                        <i class="bi bi-x-circle-fill" style="font-size: 3rem;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    {{-- 3. FORM PENCARIAN & FILTER ADVANCED --}}
-<div class="card mb-4 border-0 shadow-sm">
-    <div class="card-header bg-primary text-white py-3">
-        <h5 class="card-title mb-0"><i class="bi bi-search"></i> Pencarian & Filter Advanced</h5>
-    </div>
-    <div class="card-body bg-light">
-        <form action="{{ route('buku.search') }}" method="GET">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label small fw-bold text-muted">Kata Kunci</label>
-                    <input type="text" name="keyword" class="form-control" placeholder="Cari judul, pengarang, penerbit..." value="{{ request('keyword') }}">
-                </div>
-
-                <div class="col-md-3">
-                    <label class="form-label small fw-bold text-muted">Kategori</label>
-                    <select name="kategori" class="form-select">
-                        <option value="">-- Semua Kategori --</option>
-                        <option value="Programming" {{ request('kategori') == 'Programming' ? 'selected' : '' }}>Programming</option>
-                        <option value="Database" {{ request('kategori') == 'Database' ? 'selected' : '' }}>Database</option>
-                        <option value="Web Design" {{ request('kategori') == 'Web Design' ? 'selected' : '' }}>Web Design</option>
-                        <option value="Networking" {{ request('kategori') == 'Networking' ? 'selected' : '' }}>Networking</option>
-                        <option value="Data Science" {{ request('kategori') == 'Data Science' ? 'selected' : '' }}>Data Science</option>
-                    </select>
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold text-muted">Tahun</label>
-                    <select name="tahun" class="form-select">
-                        <option value="">-- Semua --</option>
-                        @isset($daftarTahun)
-                            @foreach($daftarTahun as $th)
-                                <option value="{{ $th }}" {{ request('tahun') == $th ? 'selected' : '' }}>{{ $th }}</option>
-                            @endforeach
-                        @endisset
-                    </select>
-                </div>
-
-                <div class="col-md-3">
-                    <label class="form-label small fw-bold text-muted">Status Ketersediaan</label>
-                    <select name="stok_status" class="form-select">
-                        <option value="">Semua Status</option>
-                        <option value="tersedia" {{ request('stok_status') == 'tersedia' ? 'selected' : '' }}>Tersedia</option>
-                        <option value="habis" {{ request('stok_status') == 'habis' ? 'selected' : '' }}>Habis</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="d-flex justify-content-end gap-2 mt-3">
-                <a href="{{ route('buku.index') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-arrow-counterclockwise"></i> Reset Filter
-                </a>
-                <button type="submit" class="btn btn-primary btn-sm px-4">
-                    <i class="bi bi-funnel-fill"></i> Terapkan Filter
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
- 
-{{-- 4. Filter Kategori --}}
-<div class="card mb-4">
-    <div class="card-body">
-        <h6 class="card-title">
-            <i class="bi bi-funnel"></i> Filter Kategori:
-        </h6>
-        <div class="btn-group" role="group">
-            <a href="{{ route('buku.index') }}" class="btn btn-sm {{ !isset($kategori) ? 'btn-primary' : 'btn-outline-primary' }}">
-                Semua
-            </a>
-            <a href="{{ route('buku.kategori', 'Programming') }}" class="btn btn-sm {{ isset($kategori) && $kategori == 'Programming' ? 'btn-primary' : 'btn-outline-primary' }}">
-                Programming
-            </a>
-            <a href="{{ route('buku.kategori', 'Database') }}" class="btn btn-sm {{ isset($kategori) && $kategori == 'Database' ? 'btn-primary' : 'btn-outline-primary' }}">
-                Database
-            </a>
-            <a href="{{ route('buku.kategori', 'Web Design') }}" class="btn btn-sm {{ isset($kategori) && $kategori == 'Web Design' ? 'btn-primary' : 'btn-outline-primary' }}">
-                Web Design
-            </a>
-            <a href="{{ route('buku.kategori', 'Networking') }}" class="btn btn-sm {{ isset($kategori) && $kategori == 'Networking' ? 'btn-primary' : 'btn-outline-primary' }}">
-                Networking
-            </a>
-            <a href="{{ route('buku.kategori', 'Data Science') }}" class="btn btn-sm {{ isset($kategori) && $kategori == 'Data Science' ? 'btn-primary' : 'btn-outline-primary' }}">
-                Data Science
-            </a>
-        </div>
-    </div>
-</div>
- 
-{{-- 5. FORM BULK DELETE (Buka di sini) --}}
-<form action="{{ route('buku.bulk-delete') }}" method="POST" id="form-bulk-delete">
-    @csrf
-
-    {{-- Tombol Aksi Masal & Checkbox Select All --}}
-    <div class="d-flex align-items-center gap-3 mb-3">
-        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus semua buku yang dipilih?')">
-            <i class="bi bi-trash-fill"></i> Hapus yang Dipilih
-        </button>
+<x-app-layout>
+    <div class="container py-5" style="font-family: 'Figtree', sans-serif;">
         
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="select-all">
-            <label class="form-check-label fw-bold" for="select-all">
-                Pilih Semua Buku
-            </label>
+        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-4 rounded-3 shadow-sm border">
+            <div>
+                <h1 class="fs-3 fw-bold text-dark mb-0">
+                    <i class="bi bi-book text-primary"></i> Daftar Koleksi Buku
+                </h1>
+                <p class="text-muted small mb-0">Kelola informasi buku dan lakukan pencarian data dengan mudah.</p>
+            </div>
+            <div>
+                <a href="/buku/create" class="btn btn-primary fw-semibold px-4 py-2">
+                    <i class="bi bi-plus-circle"></i> Tambah Buku
+                </a>
+            </div>
         </div>
-    </div>
 
-{{-- 6. Daftar Buku --}}
-@forelse ($bukus as $buku)
-<div class="form-check mb-2">
-    <input class="form-check-input row-checkbox" type="checkbox" name="buku_ids[]" value="{{ $buku->id }}">
-</div>
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-2 text-center">
-                    <i class="bi bi-book text-primary" style="font-size: 4rem;"></i>
-                    <div class="mt-2">
-                        <span class="badge bg-{{ $buku->kategori == 'Programming' ? 'primary' : ($buku->kategori == 'Database' ? 'success' : ($buku->kategori == 'Web Design' ? 'info' : ($buku->kategori == 'Networking' ? 'warning' : 'danger'))) }}">
-                            {{ $buku->kategori }}
-                        </span>
+        <div class="card mb-4 border shadow-sm rounded-3 overflow-hidden">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="card-title mb-0 fs-6 fw-bold"><i class="bi bi-search"></i> Pencarian & Filter</h5>
+            </div>
+            <div class="card-body bg-light p-4">
+                <form action="/buku" method="GET">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold text-muted">Kata Kunci</label>
+                            <input type="text" name="keyword" class="form-control" placeholder="Cari judul atau pengarang..." value="{{ request('keyword') }}">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold text-muted">Kategori</label>
+                            <select name="kategori" class="form-select">
+                                <option value="">-- Semua Kategori --</option>
+                                <option value="Programming" {{ request('kategori') == 'Programming' ? 'selected' : '' }}>Programming</option>
+                                <option value="Database" {{ request('kategori') == 'Database' ? 'selected' : '' }}>Database</option>
+                                <option value="Web Design" {{ request('kategori') == 'Web Design' ? 'selected' : '' }}>Web Design</option>
+                                <option value="Networking" {{ request('kategori') == 'Networking' ? 'selected' : '' }}>Networking</option>
+                                <option value="Data Science" {{ request('kategori') == 'Data Science' ? 'selected' : '' }}>Data Science</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                                Cari
+                            </button>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="col-md-7">
-                    <h5 class="card-title">
-                        <a href="{{ route('buku.show', $buku->id) }}" class="text-decoration-none">
-                            {{ $buku->judul }}
-                        </a>
-                    </h5>
-                    
-                    <p class="card-text text-muted mb-2">
-                        <i class="bi bi-person"></i> {{ $buku->pengarang }} | 
-                        <i class="bi bi-building"></i> {{ $buku->penerbit }} | 
-                        <i class="bi bi-calendar"></i> {{ $buku->tahun_terbit }}
-                    </p>
-                    
-                    @if ($buku->isbn)
-                        <p class="card-text small text-muted mb-1">
-                            <i class="bi bi-upc"></i> ISBN: {{ $buku->isbn }}
-                        </p>
-                    @endif
-                    
-                    @if ($buku->deskripsi)
-                        <p class="card-text">
-                            {{ Str::limit($buku->deskripsi, 150) }}
-                        </p>
-                    @endif
-                </div>
-                
-                <div class="col-md-3 text-end">
-                    <h4 class="text-primary mb-2">
-                        {{ $buku->harga_format }}
-                    </h4>
-                    
-                    <div class="mb-3">
-                        @if ($buku->stok > 0)
-                            <span class="badge bg-success">
-                                <i class="bi bi-check-circle"></i> Tersedia
-                            </span>
-                            <div class="text-muted small mt-1">
-                                Stok: {{ $buku->stok }} buku
-                            </div>
-                        @else
-                            <span class="badge bg-danger">
-                                <i class="bi bi-x-circle"></i> Habis
-                            </span>
-                        @endif
-                    </div>
-                    
-                    <div class="btn-group-vertical d-grid gap-2">
-                        <a href="{{ route('buku.show', $buku->id) }}" class="btn btn-sm btn-info text-white">
-                            <i class="bi bi-eye"></i> Detail
-                        </a>
-                        <a href="{{ route('buku.edit', $buku->id) }}" class="btn btn-sm btn-warning">
-                            <i class="bi bi-pencil"></i> Edit
-                        </a>
-                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card border shadow-sm rounded-3 overflow-hidden">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr class="text-secondary small fw-bold">
+                                <th class="ps-4">Kode Buku</th>
+                                <th>Judul</th>
+                                <th>Pengarang</th>
+                                <th>Kategori</th>
+                                <th class="text-center" width="120px">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($bukus ?? [] as $buku)
+                            <tr>
+                                <td class="ps-4"><code class="text-danger fw-semibold">{{ $buku->kode_buku }}</code></td>
+                                <td class="fw-bold text-dark">{{ $buku->judul }}</td>
+                                <td>{{ $buku->pengarang }}</td>
+                                <td><span class="badge bg-secondary px-2.5 py-1.5">{{ $buku->kategori }}</span></td>
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        <a href="/buku/{{ $buku->id }}" class="btn btn-sm btn-info text-white" title="Detail"><i class="bi bi-eye"></i></a>
+                                        <a href="/buku/{{ $buku->id }}/edit" class="btn btn-sm btn-warning text-white" title="Ubah"><i class="bi bi-pencil"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox display-4 d-block mb-3 text-muted"></i>
+                                    Tidak ada data buku yang ditemukan.
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-@empty
-    <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i>
-        Tidak ada data buku
-        @isset($kategori)
-            dengan kategori <strong>{{ $kategori }}</strong>
-        @endisset
-    </div>
-@endforelse
-
-</form>
-
-@if ($bukus->count() > 0)
-    <div class="text-center mt-4">
-        <p class="text-muted">
-            Menampilkan {{ $bukus->count() }} buku
-            @isset($kategori)
-                dari kategori <strong>{{ $kategori }}</strong>
-            @endisset
-        </p>
-    </div>
-@endif
-@endsection
-
-@forelse ($bukus as $buku)
-    <div class="mb-3">
-        <x-buku-card :buku="$buku" />
-    </div>
-@empty
-    <div class="alert alert-info">Tidak ada data buku</div>
-@endforelse
-
-{{-- Delete Button dengan SweetAlert --}}
-<form action="{{ route('buku.destroy', $buku->id) }}" 
-      method="POST" 
-      class="d-inline delete-form">
-    @csrf
-    @method('DELETE')
-    <button type="button" class="btn btn-sm btn-danger w-100 btn-delete" 
-            data-judul="{{ $buku->judul }}">
-        <i class="bi bi-trash"></i> Hapus
-    </button>
-</form>
- 
-@push('scripts')
-<script>
-    // SweetAlert confirmation untuk delete
-    document.querySelectorAll('.btn-delete').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const form = this.closest('form');
-            const judul = this.getAttribute('data-judul');
-            
-            Swal.fire({
-                title: 'Konfirmasi Hapus',
-                text: `Apakah Anda yakin ingin menghapus buku "${judul}"?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-    });
-</script>
-
-<script>
-    // Loading state saat submit form
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', function() {
-            const submitBtn = this.querySelector('button[type="submit"]');
-            if (submitBtn && !this.classList.contains('delete-form')) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
-            }
-        });
-    });
-</script>
-
-<script>
-    // Fitur Select All Checkbox
-    document.getElementById('select-all').addEventListener('change', function() {
-        document.querySelectorAll('.row-checkbox').forEach(cb => {
-            cb.checked = this.checked;
-        });
-    });
-</script>
-@endpush
+</x-app-layout>
