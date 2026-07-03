@@ -78,7 +78,7 @@ resources/views/
    php artisan serve
    ```
    Bukti server berjalan
-![Server Terbuka](dokumentasi/Pertemuan%2014.png)
+![Server Terbuka](dokumentasi/Pertemuan-14.png)
 
 ---
 
