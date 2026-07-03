@@ -85,17 +85,17 @@ resources/views/
 ## Dokumentasi Tugas 14
 * **Halaman Login Sistem (Laravel Breeze)**
 Gerbang utama autentikasi admin perpustakaan sebelum dapat mengakses data sirkulasi.
-<img src="dokumentasi/Halaman Login.png />
+<img src="dokumentasi/Halaman Login.png" />
 
 * **Form Detail Peminjaman & Eksekusi Denda (Tugas 1)**
 Halaman rincian data peminjaman sebelum diproses kembali, lengkap dengan kalkulasi denda Rp 5.000 per hari.
-<img src="dokumentasi/Pertemuan 14_Tugas 1.png />
-<img src="dokumentasi/Pertemuan 14_Tugas 1.2.png />
+<img src="dokumentasi/Pertemuan 14_Tugas 1.png" />
+<img src="dokumentasi/Pertemuan 14_Tugas 1.2.png" />
 
 * **Halaman Laporan Sirkulasi & Fitur Multi-Filter (Tugas 2)**
 Menu penyaringan data sirkulasi berdasarkan parameter tertentu disertai rangkuman total denda akumulasi dan tombol cetak PDF.
-<img src="dokumentasi/Pertemuan 14_Tugas 2.png />
+<img src="dokumentasi/Pertemuan 14_Tugas 2.png" />
 
 * **Widget Keterlambatan & Notifikasi Dashboard (Tugas 3)**
 Card peringatan dan list daftar anggota yang memicu keterlambatan pengembalian buku di dashboard.
-<img src="dokumentasi/Pertemuan 14_Tugas 3.png />
+<img src="dokumentasi/Pertemuan 14_Tugas 3.png" />
