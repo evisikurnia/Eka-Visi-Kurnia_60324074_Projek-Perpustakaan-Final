@@ -94,9 +94,9 @@ Form sirkulasi peminjaman buku pintar dengan validasi stok otomatis dan kalkulas
 <img src="dokumentasi/Daftar_Transaksi.png" />
 
 ### 6. Laporan Transaksi
-Sistem pencarian global dan penyaringan data dinamis di seluruh modul utama aplikasi.
+Menu rekapitulasi data sirkulasi dengan fitur akumulasi denda real-time dan fungsi cetak ramah printer.
 <img src="dokumentasi/Laporan_Transaksi.png" />
 
 ### 7. Global Search & Filter
-Menu rekapitulasi data sirkulasi dengan fitur akumulasi denda real-time dan fungsi cetak ramah printer.
+Sistem pencarian global dan penyaringan data dinamis di seluruh modul utama aplikasi.
 <img src="dokumentasi/Global Search & Filter.png" />
