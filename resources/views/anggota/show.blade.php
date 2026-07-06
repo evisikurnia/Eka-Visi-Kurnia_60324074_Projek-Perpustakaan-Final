@@ -7,7 +7,7 @@
     <div class="col-12 mb-3">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                 <li class="breadcrumb-item"><a href="{{ route('anggota.index') }}">Anggota</a></li>
                 <li class="breadcrumb-item active">{{ $anggota->nama }}</li>
             </ol>
@@ -136,6 +136,79 @@
     </div>
 </div>
 
+{{-- Riwayat Peminjaman Anggota (Fitur Tambahan 5) --}}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border shadow-sm rounded-3 overflow-hidden">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                <h5 class="mb-0 fw-bold text-dark">
+                    <i class="bi bi-clock-history text-success"></i> Riwayat Peminjaman Buku
+                </h5>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary px-3 py-2">Total Pinjam: {{ $statistik['total_pinjam'] }}x</span>
+                    <span class="badge bg-danger px-3 py-2">Total Denda: Rp {{ number_format($statistik['total_denda'], 0, ',', '.') }}</span>
+                </div>
+            </div>
+            <div class="card-body p-4 bg-white">
+                {{-- Status Filter Buttons --}}
+                <div class="d-flex gap-2 mb-3">
+                    <button class="btn btn-sm btn-outline-secondary active" onclick="filterHistory('semua', this)">Semua</button>
+                    <button class="btn btn-sm btn-outline-warning" onclick="filterHistory('Dipinjam', this)">Dipinjam</button>
+                    <button class="btn btn-sm btn-outline-success" onclick="filterHistory('Dikembalikan', this)">Dikembalikan</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr class="small fw-bold text-secondary">
+                                <th width="5%">No</th>
+                                <th>Kode Transaksi</th>
+                                <th>Buku</th>
+                                <th>Tanggal Pinjam</th>
+                                <th>Batas Kembali</th>
+                                <th>Tanggal Dikembalikan</th>
+                                <th>Status</th>
+                                <th>Denda</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            @forelse($riwayat as $index => $trx)
+                                <tr class="history-row" data-status="{{ $trx->status }}">
+                                    <td class="text-muted small">{{ $index + 1 }}</td>
+                                    <td><code class="fw-bold text-danger">{{ $trx->kode_transaksi }}</code></td>
+                                    <td class="fw-bold">{{ $trx->buku->judul ?? '-' }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($trx->tanggal_pinjam)->format('d M Y') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($trx->tanggal_kembali)->format('d M Y') }}</td>
+                                    <td>{{ $trx->tanggal_dikembalikan ? \Carbon\Carbon::parse($trx->tanggal_dikembalikan)->format('d M Y') : '-' }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ $trx->status == 'Dipinjam' ? 'warning text-dark' : 'success' }}">
+                                            {{ $trx->status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if($trx->denda > 0)
+                                            <span class="text-danger fw-bold">Rp {{ number_format($trx->denda, 0, ',', '.') }}</span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-3 d-block mb-1"></i>
+                                        Anggota ini belum pernah meminjam buku.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Delete Button dengan SweetAlert --}}
 <form action="{{ route('anggota.destroy', $anggota->id) }}" 
       method="POST" 
@@ -147,6 +220,27 @@
         <i class="bi bi-trash"></i> Hapus
     </button>
 </form>
+ 
+@push('scripts')
+<script>
+    function filterHistory(status, btn) {
+        // Toggle active class on buttons
+        const buttons = btn.parentElement.querySelectorAll('button');
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Filter rows
+        const rows = document.querySelectorAll('.history-row');
+        rows.forEach(row => {
+            if (status === 'semua' || row.getAttribute('data-status') === status) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+</script>
+@endpush
  
 @push('scripts')
 <script>

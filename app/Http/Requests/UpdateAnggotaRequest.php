@@ -21,8 +21,9 @@ class UpdateAnggotaRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Get anggota ID from route parameter
-        $anggotaId = $this->route('anggota');
+        // Get anggota ID from route parameter (checking both due to Laravel inflection of 'anggota' to 'anggotum')
+        $anggota = $this->route('anggota') ?? $this->route('anggotum');
+        $anggotaId = is_object($anggota) ? $anggota->id : $anggota;
         
         return [
             'kode_anggota' => 'required|string|max:20|unique:anggota,kode_anggota,' . $anggotaId,

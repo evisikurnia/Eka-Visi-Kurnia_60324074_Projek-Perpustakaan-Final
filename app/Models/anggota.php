@@ -23,16 +23,9 @@ class Anggota extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'kode_anggota',
-        'nama',
-        'email',
-        'telepon',
-        'alamat',
-        'tanggal_lahir',
-        'jenis_kelamin',
-        'pekerjaan',
-        'tanggal_daftar',
-        'status',
+        'kode_anggota', 'nama', 'email', 'telepon', 
+        'alamat', 'tanggal_lahir', 'jenis_kelamin', 
+        'pekerjaan', 'tanggal_daftar', 'status'
     ];
  
     /**

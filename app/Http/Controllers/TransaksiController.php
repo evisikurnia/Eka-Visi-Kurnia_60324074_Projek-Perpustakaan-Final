@@ -89,30 +89,36 @@ class TransaksiController extends Controller
         return view('transaksi.show', compact('transaksi'));
     }
  
-    public function kembalikan(string $id)
+   public function kembalikan(string $id)
     {
         try {
-            DB::transaction(function () use ($id) {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($id) {
                 $transaksi = Transaksi::findOrFail($id);
-                
+    
+                // Validasi double-return
+                if ($transaksi->status === 'Dikembalikan') {
+                    throw new \Exception('Buku sudah dikembalikan sebelumnya.');
+                }
+    
                 $tanggalDikembalikan = now();
                 $denda = $this->hitungDenda($transaksi, $tanggalDikembalikan);
-                
+    
+                // Update status transaksi
                 $transaksi->update([
                     'status' => 'Dikembalikan',
                     'tanggal_dikembalikan' => $tanggalDikembalikan,
                     'denda' => $denda,
                 ]);
-                
+    
+                // Kembalikan ketersediaan stok buku
                 $transaksi->buku->increment('stok');
             });
-            
+    
             return redirect()->route('transaksi.show', $id)
-                             ->with('success', 'Buku berhasil dikembalikan!');
-                             
+                            ->with('success', 'Buku berhasil dikembalikan!');
         } catch (\Exception $e) {
             return redirect()->back()
-                             ->with('error', 'Gagal mengembalikan buku: ' . $e->getMessage());
+                            ->with('error', 'Gagal mengembalikan buku: ' . $e->getMessage());
         }
     }
  
@@ -132,15 +138,16 @@ class TransaksiController extends Controller
  
     private function hitungDenda($transaksi, $tanggalDikembalikan)
     {
-        // Pastikan kolom cast bertipe date/carbon di model Transaksi agar tidak error method diffInDays
-        $tanggalKembali = Carbon::parse($transaksi->tanggal_kembali);
-        $hariTerlambat = $tanggalKembali->diffInDays(Carbon::parse($tanggalDikembalikan), false);
-        
-        if ($hariTerlambat > 0) {
-            return $hariTerlambat * 5000;
-        }
-        
-        return 0;
+    $tanggalKembaliSeharusnya = \Carbon\Carbon::parse($transaksi->tanggal_kembali);
+    $tanggalAktifKembali = \Carbon\Carbon::parse($tanggalDikembalikan);
+
+    // Jika tanggal dikembalikan melewati batas tanggal seharusnya kembali
+    if ($tanggalAktifKembali->greaterThan($tanggalKembaliSeharusnya)) {
+        $selisihHari = $tanggalAktifKembali->diffInDays($tanggalKembaliSeharusnya);
+        return $selisihHari * 5000; // Tarif Rp 5.000/hari
+    }
+
+    return 0;
     }
 
     public function laporan(Request $request)

@@ -14,6 +14,7 @@
 
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+        @stack('styles')
         
         <style>
             /* Mencegah bentrok warna background navigasi akibat tabrakan Tailwind & Bootstrap */
@@ -29,7 +30,17 @@
     <body class="font-sans antialiased bg-gray-100 text-gray-900">
         <div class="min-h-screen">
             @include('layouts.navigation')
-
+                <div class="bg-dark py-2 shadow-sm">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <form class="d-flex" action="{{ route('search') }}" method="GET">
+                        <input class="form-control me-2" type="search" name="q"
+                            placeholder="Cari buku, anggota, transaksi..." value="{{ request('q') }}">
+                        <button class="btn btn-outline-light" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </form>
+                </div>
+                </div>
             @isset($header)
                 <header class="bg-white shadow">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -39,10 +50,12 @@
             @endisset
 
             <main>
-                {{ $slot }}
+                {{ $slot ?? '' }}
+                @yield('content')
             </main>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6Rz83DN6zBxlv1PUO62hUr3b9t6v8rA6QP43LDvkFElO738t38textMpg3wKtv3" crossorigin="anonymous"></script>
+        @stack('scripts')
     </body>
 </html>

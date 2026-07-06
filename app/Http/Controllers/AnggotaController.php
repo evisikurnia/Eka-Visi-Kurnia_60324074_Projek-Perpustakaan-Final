@@ -1,27 +1,28 @@
 <?php
-
+ 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Anggota;
 use App\Http\Requests\StoreAnggotaRequest;
 use App\Http\Requests\UpdateAnggotaRequest;
+use Illuminate\Http\Request;
+use App\Models\Anggota;
 use App\Exports\AnggotaExport;
 use Maatwebsite\Excel\Facades\Excel;
-
+ 
 class AnggotaController extends Controller
 {
     /**
-     * Menampilkan daftar anggota (Halaman Utama)
+     * Display a listing of the resource.
      */
     public function index()
     {
         $anggotas = Anggota::latest()->get();
         
-        $totalAnggota = $anggotas->count();
-        $anggotaAktif = $anggotas->where('status', 'Aktif')->count();
-        $anggotaNonaktif = $anggotas->where('status', 'Nonaktif')->count();
-
+        // Statistik
+        $totalAnggota = Anggota::count();
+        $anggotaAktif = Anggota::where('status', 'Aktif')->count();
+        $anggotaNonaktif = Anggota::where('status', 'Nonaktif')->count();
+        
         return view('anggota.index', compact(
             'anggotas',
             'totalAnggota',
@@ -29,85 +30,35 @@ class AnggotaController extends Controller
             'anggotaNonaktif'
         ));
     }
-
+ 
     /**
-     * Menampilkan form tambah anggota dengan Auto-Generate Kode (Tugas 1)
-     */
-    public function create()
-    {
-        $kodeAnggota = $this->generateKodeAnggota();
-        return view('anggota.create', compact('kodeAnggota'));
-    }
-
-    /**
-     * Menyimpan data anggota baru
-     */
-    public function store(StoreAnggotaRequest $request)
-    {
-        $validatedData = $request->validated();
-        Anggota::create($validatedData);
-
-        return redirect()->route('anggota.index')
-                         ->with('success', 'Anggota baru berhasil didaftarkan!');
-    }
-
-    /**
-     * Menampilkan detail anggota
+     * Display the specified resource.
      */
     public function show(string $id)
     {
-        $anggota = Anggota::findOrFail($id);
-        return view('anggota.show', compact('anggota'));
-    }
+        $anggota = Anggota::with(['transaksis' => function ($q) {
+            $q->with('buku')->latest();
+        }])->findOrFail($id);
 
-    /**
-     * Menampilkan form edit anggota
-     */
-    public function edit(string $id)
+        $riwayat = $anggota->transaksis;
+
+        // Statistik peminjaman anggota
+        $statistik = [
+            'total_pinjam'   => $riwayat->count(),
+            'sedang_pinjam'  => $riwayat->where('status', 'Dipinjam')->count(),
+            'dikembalikan'   => $riwayat->where('status', 'Dikembalikan')->count(),
+            'total_denda'    => $riwayat->sum('denda'),
+        ];
+
+        return view('anggota.show', compact('anggota', 'riwayat', 'statistik'));
+    }
+ 
+    // Methods lainnya akan diimplementasi di pertemuan 13
+    public function export()
     {
-        $anggota = Anggota::findOrFail($id);
-        return view('anggota.edit', compact('anggota'));
+        return Excel::download(new AnggotaExport, 'anggota_' . date('Y-m-d_His') . '.xlsx');
     }
 
-    /**
-     * Memperbarui data anggota
-     */
-    public function update(UpdateAnggotaRequest $request, string $id)
-    {
-        try {
-            $anggota = Anggota::findOrFail($id);
-            $anggota->update($request->validated());
-            
-            return redirect()->route('anggota.show', $anggota->id)
-                             ->with('success', 'Data anggota berhasil diupdate!');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                             ->withInput()
-                             ->with('error', 'Gagal mengupdate anggota: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Menghapus data anggota
-     */
-    public function destroy(string $id)
-    {
-        try {
-            $anggota = Anggota::findOrFail($id);
-            $namaAnggota = $anggota->nama;
-            $anggota->delete();
-            
-            return redirect()->route('anggota.index')
-                             ->with('success', "Anggota '{$namaAnggota}' berhasil dihapus!");
-        } catch (\Exception $e) {
-            return redirect()->back()
-                             ->with('error', 'Gagal menghapus anggota: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Advanced Search & Filter Anggota (Tugas 3)
-     */
     public function search(Request $request)
     {
         $query = Anggota::query();
@@ -134,6 +85,7 @@ class AnggotaController extends Controller
         
         $anggotas = $query->latest()->get();
         
+        // Statistics
         $totalAnggota = $anggotas->count();
         $anggotaAktif = $anggotas->where('status', 'Aktif')->count();
         $anggotaNonaktif = $anggotas->where('status', 'Nonaktif')->count();
@@ -146,23 +98,71 @@ class AnggotaController extends Controller
         ));
     }
 
-    /**
-     * Export ke file Excel (Tugas 2)
-     */
-    public function export()
-    {
-        return Excel::download(new AnggotaExport, 'anggota_' . date('Y-m-d_His') . '.xlsx');
+    public function create() {
+         $kodeAnggota = $this->generateKodeAnggota();
+    return view('anggota.create', compact('kodeAnggota'));
+     }
+    public function store(StoreAnggotaRequest $request) { 
+        try {
+        // Create anggota baru dengan validated data
+        Anggota::create($request->validated());
+        
+        // Redirect dengan success message
+        return redirect()->route('anggota.index')
+                         ->with('success', 'Anggota berhasil ditambahkan!');
+        } catch (\Exception $e) {
+            // Redirect dengan error message jika gagal
+            return redirect()->back()
+                            ->withInput()
+                            ->with('error', 'Gagal menambahkan anggota: ' . $e->getMessage());
+        }
     }
-
-    /**
-     * Helper Function: Auto-generate kode anggota (Tugas 1)
-     */
+    public function edit(string $id) {
+        $anggota = Anggota::findOrFail($id);
+        return view('anggota.edit', compact('anggota'));
+    }
+    public function update(UpdateAnggotaRequest  $request, string $id) {
+          try {
+            $anggota = Anggota::findOrFail($id);
+            
+            // Update anggota dengan validated data
+            $anggota->update($request->validated());
+            
+            // Redirect dengan success message
+            return redirect()->route('anggota.show', $anggota->id)
+                            ->with('success', 'Data anggota berhasil diupdate!');
+                            
+        } catch (\Exception $e) {
+            // Redirect dengan error message jika gagal
+            return redirect()->back()
+                            ->withInput()
+                            ->with('error', 'Gagal mengupdate anggota: ' . $e->getMessage());
+        }
+     }
+    public function destroy(string $id) {
+        try {
+        $anggota = Anggota::findOrFail($id);
+        $namaAnggota = $anggota->nama;
+        
+        // Delete anggota
+        $anggota->delete();
+        
+        // Redirect dengan success message
+        return redirect()->route('anggota.index')
+                         ->with('success', "Anggota '{$namaAnggota}' berhasil dihapus!");
+                         
+        } catch (\Exception $e) {
+            // Redirect dengan error message jika gagal
+            return redirect()->back()
+                            ->with('error', 'Gagal menghapus anggota: ' . $e->getMessage());
+        }
+     }
     private function generateKodeAnggota()
     {
         $tahun = date('Y');
-        $lastAnggota = Anggota::whereYear('created_at', $tahun)
-                              ->orderBy('kode_anggota', 'desc')
-                              ->first();
+        $lastAnggota = Anggota::where('kode_anggota', 'like', 'AGT-' . $tahun . '-%')
+                            ->orderBy('kode_anggota', 'desc')
+                            ->first();
         
         if ($lastAnggota) {
             $lastNumber = intval(substr($lastAnggota->kode_anggota, -3));

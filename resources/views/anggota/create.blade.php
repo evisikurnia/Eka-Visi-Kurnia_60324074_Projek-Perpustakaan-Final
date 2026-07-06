@@ -30,12 +30,12 @@
                                    name="kode_anggota" 
                                    id="kode_anggota" 
                                    class="form-control @error('kode_anggota') is-invalid @enderror"
-                                   value="{{ old('kode_anggota') }}"
+                                   value="{{ old('kode_anggota', $kodeAnggota) }}"
                                    readonly>
                             @error('kode_anggota')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <small class="text-muted">Generate Otomatis: Dibuat oleh sistem</small>
+                            <small class="text-muted">Generated otomatis: AGT-[TAHUN]-[NOMOR_URUT]</small>
                         </div>
                         
                         {{-- Nama --}}
