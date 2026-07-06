@@ -66,7 +66,7 @@ resources/views/
    ```
    Akses aplikasi melalui browser di: http://localhost:8000
    Bukti server berjalan
-![Server Terbuka](dokumentasi/Pertemuan-14.png)
+   ![Server Terbuka](dokumentasi/Pertemuan-14.png)
 
 ---
 
