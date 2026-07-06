@@ -64,7 +64,8 @@ resources/views/
    ```bash
    php artisan serve
    ```
-   Akses aplikasi melalui browser di: http://localhost:8000
+   Akses aplikasi melalui browser ``` di: http://localhost:8000 ```
+
    Bukti server berjalan
    ![Server Terbuka](dokumentasi/Pertemuan-14.png)
 
