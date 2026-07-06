@@ -7,8 +7,6 @@ Sistem Manajemen Perpustakaan modern berbasis web yang dibangun menggunakan *Lar
 
 ---
 
----
-
 ## 💻 Tech Stack & Kebutuhan Sistem
 
 * **Backend:** Laravel Framework (PHP >= 8.2)
