@@ -72,16 +72,16 @@
                                 <td>{{ \Carbon\Carbon::parse($transaksi->tanggal_kembali)->format('d M Y') }}</td>
                               <td>
                                 @if($transaksi->status == 'Dipinjam')
-                                    @if(\Carbon\Carbon::parse($transaksi->tanggal_kembali)->isPast())
-                                        @php
-                                            $selisih = \Carbon\Carbon::parse($transaksi->tanggal_kembali)->diffInDays(now());
-                                        @endphp
-                                        <span class="badge bg-danger px-2.5 py-1.5 d-block text-center mb-1">Terlambat {{ $selisih }} Hari</span>
-                                    @else
-                                        <span class="badge bg-warning text-dark px-2.5 py-1.5 d-block text-center">Dipinjam</span>
-                                    @endif
+                                @if(\Carbon\Carbon::parse($transaksi->tanggal_kembali)->isPast())
+                                    @php
+                                        $selisih_hari = \Carbon\Carbon::parse($transaksi->tanggal_kembali)->diffInDays(now());
+                                    @endphp
+                                    <span class="badge bg-danger">Terlambat {{ floor($selisih_hari) }} Hari</span>
                                 @else
-                                    <span class="badge bg-success px-2.5 py-1.5 d-block text-center">Dikembalikan</span>
+                                    <span class="badge bg-warning text-dark">Dipinjam</span>
+                                @endif
+                                @else
+                                    <span class="badge bg-success">Dikembalikan</span>
                                 @endif
                              </td>
                                 <td class="text-center">

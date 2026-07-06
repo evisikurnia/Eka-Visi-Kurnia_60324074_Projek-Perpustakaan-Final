@@ -152,30 +152,35 @@ class TransaksiController extends Controller
 
     public function laporan(Request $request)
     {
-    $anggotas = Anggota::orderBy('nama')->get();
-    
-    // Query dasar dengan relasi
-    $query = Transaksi::with(['anggota', 'buku']);
+        // 1. Ambil data transaksi berdasarkan filter
+        $query = Transaksi::query();
+        
+        // ... (kode filter tanggal/anggota kamu yang sudah ada) ...
 
-    // Filter Tanggal dari - sampai
-    if ($request->filled('tgl_mulai') && $request->filled('tgl_selesai')) {
-        $query->whereBetween('tanggal_pinjam', [$request->tgl_mulai, $request->tgl_selesai]);
-    }
+        $transaksi = $query->get();
+        $total_denda = 0;
 
-    // Filter Status
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
-    }
+        // 2. HITUNG DENDA BERJALAN SECARA REAL-TIME UNTUK LAPORAN
+        foreach ($transaksi as $t) {
+            if ($t->status == 'Dipinjam' && now()->gt($t->tanggal_kembali)) {
+                // Jika masih dipinjam dan sudah melewati tanggal kembali
+                $hari_terlambat = floor(now()->diffInDays($t->tanggal_kembali));
+                $t->hitung_denda = $hari_terlambat * 5000;
+                $t->status_laporan = 'Terlambat'; // Ubah status khusus untuk tampilan laporan
+            } elseif ($t->status == 'Dikembalikan') {
+                // Jika sudah dikembalikan, pakai denda asli yang tersimpan di DB
+                $t->hitung_denda = $t->denda;
+                $t->status_laporan = 'Dikembalikan';
+            } else {
+                $t->hitung_denda = 0;
+                $t->status_laporan = 'Dipinjam';
+            }
 
-    // Filter Anggota
-    if ($request->filled('anggota_id')) {
-        $query->where('anggota_id', $request->anggota_id);
-    }
+            // Akumulasikan ke total box merah
+            $total_denda += $t->hitung_denda;
+        }
 
-    $transaksis = $query->latest()->get();
-    $total_denda = $transaksis->sum('denda');
-
-    return view('transaksi.laporan', compact('transaksis', 'anggotas', 'total_denda'));
+        return view('transaksi.laporan', compact('transaksi', 'total_denda'));
     }
 
     public function cetakLaporan(Request $request)

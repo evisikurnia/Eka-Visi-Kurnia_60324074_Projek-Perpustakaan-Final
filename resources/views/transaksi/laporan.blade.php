@@ -57,7 +57,16 @@
             <div class="col-md-6">
                 <div class="card bg-white border shadow-sm p-3 text-center">
                     <h6 class="text-muted small fw-bold mb-1">TOTAL DENDA AKUMULASI</h6>
-                    <h3 class="fw-bold text-danger mb-0">Rp {{ number_format($total_denda, 0, ',', '.') }}</h3>
+                    @php
+                        $total_denda_plus_berjalan = $total_denda;
+                        foreach($transaksis as $trx) {
+                            if($trx->status == 'Dipinjam' && \Carbon\Carbon::parse($trx->tanggal_kembali)->isPast()) {
+                                $hari = floor(\Carbon\Carbon::parse($trx->tanggal_kembali)->diffInDays(now()));
+                                $total_denda_plus_berjalan += ($hari * 5000);
+                            }
+                        }
+                    @endphp
+                    <h3 class="fw-bold text-danger mb-0">Rp {{ number_format($total_denda_plus_berjalan, 0, ',', '.') }}</h3>
                 </div>
             </div>
         </div>
@@ -85,12 +94,24 @@
                             <td>{{ \Carbon\Carbon::parse($trx->tanggal_pinjam)->format('d/m/Y') }}</td>
                             <td>{{ \Carbon\Carbon::parse($trx->tanggal_kembali)->format('d/m/Y') }}</td>
                             <td>
-                                <span class="badge {{ $trx->status == 'Dipinjam' ? 'bg-warning text-dark' : 'bg-success' }}">
-                                    {{ $trx->status }}
-                                </span>
+                                @if($trx->status == 'Dipinjam' && \Carbon\Carbon::parse($trx->tanggal_kembali)->isPast())
+                                    <span class="badge bg-danger">Terlambat</span>
+                                @else
+                                    <span class="badge {{ $trx->status == 'Dipinjam' ? 'bg-warning text-dark' : 'bg-success' }}">
+                                        {{ $trx->status }}
+                                    </span>
+                                @endif
                             </td>
-                            <td class="pe-4 fw-bold {{ $trx->denda > 0 ? 'text-danger' : 'text-muted' }}">
-                                Rp {{ number_format($trx->denda, 0, ',', '.') }}
+                            <td class="pe-4 fw-bold {{ ($trx->denda > 0 || ($trx->status == 'Dipinjam' && \Carbon\Carbon::parse($trx->tanggal_kembali)->isPast())) ? 'text-danger' : 'text-muted' }}">
+                                @if($trx->status == 'Dipinjam' && \Carbon\Carbon::parse($trx->tanggal_kembali)->isPast())
+                                    @php
+                                        $hari_terlambat = floor(\Carbon\Carbon::parse($trx->tanggal_kembali)->diffInDays(now()));
+                                        $denda_berjalan = $hari_terlambat * 5000;
+                                    @endphp
+                                    Rp {{ number_format($denda_berjalan, 0, ',', '.') }}
+                                @else
+                                    {{ $trx->denda > 0 ? 'Rp ' . number_format($trx->denda, 0, ',', '.') : '-' }}
+                                @endif
                             </td>
                         </tr>
                         @empty
